@@ -1,0 +1,60 @@
+' Troca material, simula, exporta S11 e registra tempo
+
+Dim oAnsoftApp
+Dim oDesktop
+Dim oProject
+Dim oDesign
+Dim oEditor
+Dim oReport
+Dim fso, logFile, tempoInicio, tempoFim, tempoTotal
+
+Set oAnsoftApp = CreateObject("AnsoftHfss.HfssScriptInterface")
+Set oDesktop = oAnsoftApp.GetAppDesktop()
+oDesktop.RestoreWindow
+
+Set oProject = oDesktop.SetActiveProject("sensor_dra_tentativa2")
+Set oDesign = oProject.SetActiveDesign("HFSSDesign1")
+Set oEditor = oDesign.SetActiveEditor("3D Modeler")
+Set oReport = oDesign.GetModule("ReportSetup")
+
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set logFile = fso.OpenTextFile("D:\Meus arquivos\Projetos Antenas\dissertacao\s11_resultados\simulacao_log.txt", 8, True)
+
+Dim i, materialAtual, nomeArquivo, caminhoExportacao
+
+For i = 100 To 100 Step 2
+
+  materialAtual = "E" & i
+
+  ' Trocar material
+  oEditor.AssignMaterial Array("NAME:Selections", "Selections:=", "Liquido"), _
+                         Array("NAME:Attributes", "MaterialValue:=", Chr(34) & materialAtual & Chr(34), "SolveInside:=", true)
+
+  ' Marcar tempo de início
+  tempoInicio = Timer
+
+  ' Rodar simulação
+  oDesign.Analyze "Discrete"
+
+  ' Marcar tempo de fim
+  tempoFim = Timer
+
+  ' Corrigir caso o Timer tenha atravessado a meia-noite
+  If tempoFim < tempoInicio Then
+    tempoTotal = Round((86400 - tempoInicio + tempoFim), 2)
+  Else
+    tempoTotal = Round(tempoFim - tempoInicio, 2)
+  End If
+
+  ' Caminho de exportação baseado no nome do material
+  caminhoExportacao = "D:\Meus arquivos\Projetos Antenas\dissertacao\s11_resultados\S11_" & materialAtual & ".csv"
+
+  ' Exportar S11 do gráfico XY Plot 1
+  oReport.ExportToFile "XY Plot 1", caminhoExportacao
+
+  ' Registrar log
+  logFile.WriteLine "Material: " & materialAtual & " | Tempo: " & tempoTotal & " segundos"
+
+Next
+
+logFile.Close
