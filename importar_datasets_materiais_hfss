@@ -1,0 +1,26 @@
+' Script para importar datasets E0 a E100 automaticamente no HFSS13
+' Se necessário, modificar o número em Step (atualmente em 2)
+
+Dim oAnsoftApp
+Dim oDesktop
+Dim oProject
+
+Set oAnsoftApp = CreateObject("AnsoftHfss.HfssScriptInterface")
+Set oDesktop = oAnsoftApp.GetAppDesktop()
+oDesktop.RestoreWindow
+
+Set oProject = oDesktop.SetActiveProject("sensor_dra_tentativa2")
+
+Dim basePath, i, nome, epsPath, tandPath
+basePath = "D:/Meus arquivos/Projetos Antenas/dissertacao/misturas/"
+
+For i = 0 To 100 Step 2
+    nome = "E" & i
+    epsPath = basePath & nome & "/" & nome & "_eps.tab"
+    tandPath = basePath & nome & "/" & nome & "_tan_delta.tab"
+    
+    oProject.ImportDataset epsPath
+    oProject.ImportDataset tandPath
+Next
+
+MsgBox "Todos os datasets E0 a E100 foram importados com sucesso!"
