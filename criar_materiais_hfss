@@ -1,0 +1,33 @@
+' Script para criar materiais E0 a E100 automaticamente no HFSS13
+' Associando pwl($E*_eps1,Freq) e pwl($E*_tan_delta1,Freq)
+
+Dim oAnsoftApp
+Dim oDesktop
+Dim oProject
+Dim oDefinitionManager
+
+Set oAnsoftApp = CreateObject("AnsoftHfss.HfssScriptInterface")
+Set oDesktop = oAnsoftApp.GetAppDesktop()
+oDesktop.RestoreWindow
+
+Set oProject = oDesktop.SetActiveProject("sensor_dra_tentativa2")
+Set oDefinitionManager = oProject.GetDefinitionManager()
+
+Dim i, nome, expr_eps, expr_tand
+
+For i = 0 To 100 Step 2
+    nome = "E" & i
+    expr_eps = "pwl($" & nome & "_eps1,Freq)"
+    expr_tand = "pwl($" & nome & "_tan_delta1,Freq)"
+
+    oDefinitionManager.AddMaterial Array( _
+        "NAME:" & nome, _
+        "CoordinateSystemType:=", "Cartesian", _
+        Array("NAME:AttachedData"), _
+        Array("NAME:ModifierData"), _
+        "permittivity:=", expr_eps, _
+        "dielectric_loss_tangent:=", expr_tand _
+    )
+Next
+
+MsgBox "Todos os materiais foram criados com sucesso!"
